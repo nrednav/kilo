@@ -27,8 +27,8 @@ void Editor::initialize() {
 
   this->escape_map["show_cursor"] = "\x1b[?25l";
   this->escape_map["hide_cursor"] = "\x1b[?25h";
-  this->escape_map["reset_cursor"] = "\x1b[H";
-  this->escape_map["clear_screen"] = "\x1b[2J";
+  this->escape_map["reset_cursor_pos"] = "\x1b[H";
+  this->escape_map["erase_Line"] = "\x1b[K";
 }
 
 Window* Editor::create_window() {
@@ -86,12 +86,11 @@ CursorPosition Editor::get_cursor_position() {
 
 void Editor::refresh_screen() {
   this->screen_buffer->append(this->escape_map["show_cursor"]);
-  this->screen_buffer->append(this->escape_map["clear_screen"]);
-  this->screen_buffer->append(this->escape_map["reset_cursor"]);
+  this->screen_buffer->append(this->escape_map["reset_cursor_pos"]);
 
   this->draw();
 
-  this->screen_buffer->append(this->escape_map["reset_cursor"]);
+  this->screen_buffer->append(this->escape_map["reset_cursor_pos"]);
   this->screen_buffer->append(this->escape_map["hide_cursor"]);
 
   this->screen_buffer->flush();
@@ -101,6 +100,8 @@ void Editor::refresh_screen() {
 void Editor::draw() {
   for (int y = 0; y < this->window->height; y++) {
     this->screen_buffer->append("~");
+
+    this->screen_buffer->append(this->escape_map["erase_line"]);
 
     if (y < this->window->height - 1) {
       this->screen_buffer->append("\r\n");
