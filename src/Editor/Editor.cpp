@@ -23,6 +23,7 @@ void Editor::initialize() {
   this->terminal = std::make_unique<Terminal>();
   this->window = this->create_window();
   this->screen_buffer = std::make_unique<AppendBuffer>();
+  this->cursor_position = CursorPosition{0, 0};
 
   this->escape_map["show_cursor"] = "\x1b[?25l";
   this->escape_map["hide_cursor"] = "\x1b[?25h";
@@ -90,7 +91,11 @@ void Editor::refresh_screen() {
 
   this->draw();
 
-  this->screen_buffer->append(this->escape_map["reset_cursor_pos"]);
+  char buffer[32];
+  snprintf(buffer, sizeof(buffer), "\x1b[%d;%dH", this->cursor_position.y + 1,
+           this->cursor_position.x + 1);
+  this->screen_buffer->append(buffer);
+
   this->screen_buffer->append(this->escape_map["hide_cursor"]);
 
   this->screen_buffer->flush();
@@ -119,6 +124,12 @@ void Editor::process_input() {
     this->terminal->disable_raw_mode();
     this->terminal->terminate("quit initiated");
     break;
+
+  case 'w':
+  case 'a':
+  case 's':
+  case 'd':
+    this->move_cursor(key);
   }
 }
 
@@ -151,4 +162,21 @@ void Editor::display_welcome_message() {
     this->screen_buffer->append(" ");
 
   this->screen_buffer->append(welcome);
+}
+
+void Editor::move_cursor(char key) {
+  switch (key) {
+  case 'a':
+    this->cursor_position.x--;
+    break;
+  case 'd':
+    this->cursor_position.x++;
+    break;
+  case 'w':
+    this->cursor_position.y--;
+    break;
+  case 's':
+    this->cursor_position.y++;
+    break;
+  }
 }

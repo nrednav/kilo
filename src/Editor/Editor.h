@@ -32,6 +32,7 @@ private:
   std::unique_ptr<Terminal> terminal;
   Window* window;
   std::unique_ptr<AppendBuffer> screen_buffer;
+  CursorPosition cursor_position;
   std::map<std::string, std::string> escape_map;
 
   void initialize();
@@ -40,6 +41,7 @@ private:
   void process_input();
   void display_welcome_message();
   char read_key();
+  void move_cursor(char key);
   Window* create_window();
   CursorPosition get_cursor_position();
 };
