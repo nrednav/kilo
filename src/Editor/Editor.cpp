@@ -1,4 +1,5 @@
 #include "Editor.h"
+#include <memory>
 
 Editor::Editor() {
   try {
@@ -16,12 +17,13 @@ Editor::Editor() {
 Editor::~Editor() {
   this->terminal = nullptr;
   this->window = nullptr;
+  this->screen_buffer = nullptr;
 }
 
 void Editor::initialize() {
-  static Terminal terminal{};
-  this->terminal = &terminal;
+  this->terminal = std::make_unique<Terminal>();
   this->window = this->create_window();
+  this->screen_buffer = std::make_unique<AppendBuffer>();
 }
 
 Window* Editor::create_window() {
@@ -78,20 +80,23 @@ CursorPosition Editor::get_cursor_position() {
 }
 
 void Editor::refresh_screen() {
-  write(STDOUT_FILENO, "\x1b[2J", 4);
-  write(STDOUT_FILENO, "\x1b[H", 3);
+  this->screen_buffer->append("\x1b[2J");
+
+  // Move cursor to top-left
+  this->screen_buffer->append("\x1b[H");
 
   this->draw();
 
-  write(STDOUT_FILENO, "\x1b[H", 3);
+  this->screen_buffer->flush();
+  this->screen_buffer->clear();
 }
 
 void Editor::draw() {
   for (int y = 0; y < this->window->height; y++) {
-    write(STDOUT_FILENO, "~", 3);
+    this->screen_buffer->append("~");
 
     if (y < this->window->height - 1) {
-      write(STDOUT_FILENO, "\r\n", 2);
+      this->screen_buffer->append("\r\n");
     }
   }
 }
@@ -101,9 +106,8 @@ void Editor::process_input() {
 
   switch (key) {
   case 0x1f & 'q': // Ctrl-q
-    write(STDOUT_FILENO, "\x1b[2J", 4);
-    write(STDOUT_FILENO, "\x1b[H", 3);
-    exit(0);
+    this->terminal->disable_raw_mode();
+    this->terminal->terminate("quit initiated");
     break;
   }
 }

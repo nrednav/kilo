@@ -1,4 +1,5 @@
 #include "Terminal.h"
+#include <cstdlib>
 
 Terminal::Terminal() {
   this->enable_raw_mode();

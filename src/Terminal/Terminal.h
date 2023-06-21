@@ -14,12 +14,13 @@ public:
   Terminal();
   ~Terminal();
   void terminate(const std::string& reason);
+  void disable_raw_mode();
 
 private:
+  struct termios original_termios;
   struct termios termios;
 
   void enable_raw_mode();
-  void disable_raw_mode();
 };
 
 #endif // !TERMINAL_H
