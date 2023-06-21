@@ -1,6 +1,6 @@
-#include <iostream>
+#include "Editor/Editor.h"
 
 int main(int argc, char* argv[]) {
-  std::cout << "kilo" << std::endl;
+  Editor editor{};
   return 0;
 }
