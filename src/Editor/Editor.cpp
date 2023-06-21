@@ -88,7 +88,11 @@ void Editor::refresh_screen() {
 
 void Editor::draw() {
   for (int y = 0; y < this->window->height; y++) {
-    write(STDOUT_FILENO, "~\r\n", 3);
+    write(STDOUT_FILENO, "~", 3);
+
+    if (y < this->window->height - 1) {
+      write(STDOUT_FILENO, "\r\n", 2);
+    }
   }
 }
 
