@@ -1,11 +1,13 @@
 #ifndef EDITOR_H
 #define EDITOR_H
 
-#include "../Terminal/Terminal.h"
-#include "../AppendBuffer/AppendBuffer.h"
+#include <map>
 #include <sys/ioctl.h>
 #include <iostream>
 #include <stdexcept>
+
+#include "../Terminal/Terminal.h"
+#include "../AppendBuffer/AppendBuffer.h"
 
 #define CTRL_KEY(key) ((key)&0x1f);
 
@@ -28,6 +30,7 @@ private:
   std::unique_ptr<Terminal> terminal;
   Window* window;
   std::unique_ptr<AppendBuffer> screen_buffer;
+  std::map<std::string, std::string> escape_map;
 
   void initialize();
   void refresh_screen();

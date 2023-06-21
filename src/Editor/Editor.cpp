@@ -24,6 +24,11 @@ void Editor::initialize() {
   this->terminal = std::make_unique<Terminal>();
   this->window = this->create_window();
   this->screen_buffer = std::make_unique<AppendBuffer>();
+
+  this->escape_map["show_cursor"] = "\x1b[?25l";
+  this->escape_map["hide_cursor"] = "\x1b[?25h";
+  this->escape_map["reset_cursor"] = "\x1b[H";
+  this->escape_map["clear_screen"] = "\x1b[2J";
 }
 
 Window* Editor::create_window() {
@@ -80,12 +85,14 @@ CursorPosition Editor::get_cursor_position() {
 }
 
 void Editor::refresh_screen() {
-  this->screen_buffer->append("\x1b[2J");
-
-  // Move cursor to top-left
-  this->screen_buffer->append("\x1b[H");
+  this->screen_buffer->append(this->escape_map["show_cursor"]);
+  this->screen_buffer->append(this->escape_map["clear_screen"]);
+  this->screen_buffer->append(this->escape_map["reset_cursor"]);
 
   this->draw();
+
+  this->screen_buffer->append(this->escape_map["reset_cursor"]);
+  this->screen_buffer->append(this->escape_map["hide_cursor"]);
 
   this->screen_buffer->flush();
   this->screen_buffer->clear();
