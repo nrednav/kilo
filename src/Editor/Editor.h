@@ -5,10 +5,12 @@
 #include <sys/ioctl.h>
 #include <iostream>
 #include <stdexcept>
+#include <stdio.h>
 
 #include "../Terminal/Terminal.h"
 #include "../AppendBuffer/AppendBuffer.h"
 
+#define KILO_VERSION "0.0.1"
 #define CTRL_KEY(key) ((key)&0x1f);
 
 struct Window {
@@ -36,6 +38,7 @@ private:
   void refresh_screen();
   void draw();
   void process_input();
+  void display_welcome_message();
   char read_key();
   Window* create_window();
   CursorPosition get_cursor_position();

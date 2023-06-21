@@ -1,5 +1,4 @@
 #include "Editor.h"
-#include <memory>
 
 Editor::Editor() {
   try {
@@ -28,7 +27,7 @@ void Editor::initialize() {
   this->escape_map["show_cursor"] = "\x1b[?25l";
   this->escape_map["hide_cursor"] = "\x1b[?25h";
   this->escape_map["reset_cursor_pos"] = "\x1b[H";
-  this->escape_map["erase_Line"] = "\x1b[K";
+  this->escape_map["clear_screen"] = "\x1b[2J";
 }
 
 Window* Editor::create_window() {
@@ -86,6 +85,7 @@ CursorPosition Editor::get_cursor_position() {
 
 void Editor::refresh_screen() {
   this->screen_buffer->append(this->escape_map["show_cursor"]);
+  this->screen_buffer->append(this->escape_map["clear_screen"]);
   this->screen_buffer->append(this->escape_map["reset_cursor_pos"]);
 
   this->draw();
@@ -98,12 +98,14 @@ void Editor::refresh_screen() {
 }
 
 void Editor::draw() {
-  for (int y = 0; y < this->window->height; y++) {
-    this->screen_buffer->append("~");
+  for (int row = 0; row < this->window->height; row++) {
+    if (row == this->window->height / 3) {
+      this->display_welcome_message();
+    } else {
+      this->screen_buffer->append("~");
+    }
 
-    this->screen_buffer->append(this->escape_map["erase_line"]);
-
-    if (y < this->window->height - 1) {
+    if (row < this->window->height - 1) {
       this->screen_buffer->append("\r\n");
     }
   }
@@ -130,4 +132,23 @@ char Editor::read_key() {
   }
 
   return key;
+}
+
+void Editor::display_welcome_message() {
+  char welcome[80];
+  int welcome_length = snprintf(welcome, sizeof(welcome),
+                                "Kilo Editor -- Version %s", KILO_VERSION);
+
+  if (welcome_length > this->window->width)
+    welcome_length = this->window->width;
+
+  int padding = (this->window->width - welcome_length) / 2;
+  if (padding) {
+    this->screen_buffer->append("~");
+    padding--;
+  }
+  while (padding--)
+    this->screen_buffer->append(" ");
+
+  this->screen_buffer->append(welcome);
 }

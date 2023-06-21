@@ -17,7 +17,6 @@ public:
   void disable_raw_mode();
 
 private:
-  struct termios original_termios;
   struct termios termios;
 
   void enable_raw_mode();
