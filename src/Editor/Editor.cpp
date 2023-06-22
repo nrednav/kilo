@@ -27,8 +27,11 @@ void Editor::initialize() {
 
   this->escape_map["show_cursor"] = "\x1b[?25l";
   this->escape_map["hide_cursor"] = "\x1b[?25h";
+  this->escape_map["cursor_pos"] = "\x1b[%d;%dH";
   this->escape_map["reset_cursor_pos"] = "\x1b[H";
   this->escape_map["clear_screen"] = "\x1b[2J";
+  this->escape_map["bottom_right_corner"] = "\x1b[999C\x1b[999B";
+  this->escape_map["device_status"] = "\x1b[6n";
 }
 
 Window* Editor::create_window() {
@@ -38,9 +41,11 @@ Window* Editor::create_window() {
   bool gotWindowSize = ioctl(STDOUT_FILENO, TIOCGWINSZ, &windowSize) != -1;
 
   if (!gotWindowSize || windowSize.ws_col == 0) {
-    if (write(STDOUT_FILENO, "\x1b[999C\x1b[999B", 12) != 12)
+    if (write(STDOUT_FILENO, this->escape_map["bottom_right_corner"].c_str(),
+              12) != 12) {
       throw std::runtime_error{
           "create_window: could not reposition cursor to bottom-right edge"};
+    }
 
     CursorPosition cursorPosition = this->get_cursor_position();
     window.width = cursorPosition.x;
@@ -59,9 +64,10 @@ CursorPosition Editor::get_cursor_position() {
   char buffer[32];
   unsigned int i = 0;
 
-  if (write(STDOUT_FILENO, "\x1b[6n", 4) != 4)
+  if (write(STDOUT_FILENO, this->escape_map["device_status"].c_str(), 4) != 4) {
     throw std::runtime_error{
         "get_cursor_position: could not retrieve device status report"};
+  }
 
   while (i < sizeof(buffer) - 1) {
     if (read(STDIN_FILENO, &buffer[i], 1) != 1)
@@ -91,10 +97,12 @@ void Editor::refresh_screen() {
 
   this->draw();
 
-  char buffer[32];
-  snprintf(buffer, sizeof(buffer), "\x1b[%d;%dH", this->cursor_position.y + 1,
+  // Move cursor
+  char cursor_buffer[32];
+  snprintf(cursor_buffer, sizeof(cursor_buffer),
+           this->escape_map["cursor_pos"].c_str(), this->cursor_position.y + 1,
            this->cursor_position.x + 1);
-  this->screen_buffer->append(buffer);
+  this->screen_buffer->append(cursor_buffer);
 
   this->screen_buffer->append(this->escape_map["hide_cursor"]);
 
