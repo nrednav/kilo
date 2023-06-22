@@ -25,7 +25,17 @@ struct CursorPosition {
   int y;
 };
 
-enum EditorKey { Left = 1000, Right, Up, Down, PageUp, PageDown, Home, End };
+enum EditorKey {
+  Left = 1000,
+  Right,
+  Up,
+  Down,
+  Delete,
+  PageUp,
+  PageDown,
+  Home,
+  End,
+};
 
 class Editor {
 public:

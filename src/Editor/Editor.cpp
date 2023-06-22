@@ -183,6 +183,8 @@ int Editor::read_key() {
           switch (sequence[1]) {
           case '1':
             return EditorKey::Home;
+          case '3':
+            return EditorKey::Delete;
           case '4':
             return EditorKey::End;
           case '5':
