@@ -133,10 +133,19 @@ void Editor::process_input() {
     this->terminal->terminate("quit initiated");
     break;
 
-  case ArrowKey::Left:
-  case ArrowKey::Right:
-  case ArrowKey::Up:
-  case ArrowKey::Down:
+  case EditorKey::PageUp:
+  case EditorKey::PageDown: {
+    int times = this->window->height;
+    while (times--) {
+      this->move_cursor(key == EditorKey::PageUp ? EditorKey::Up
+                                                 : EditorKey::Down);
+    }
+  }
+
+  case EditorKey::Left:
+  case EditorKey::Right:
+  case EditorKey::Up:
+  case EditorKey::Down:
     this->move_cursor(key);
   }
 }
@@ -160,15 +169,28 @@ int Editor::read_key() {
       return '\x1b';
 
     if (sequence[0] == '[') {
-      switch (sequence[1]) {
-      case 'A':
-        return ArrowKey::Up;
-      case 'B':
-        return ArrowKey::Down;
-      case 'C':
-        return ArrowKey::Right;
-      case 'D':
-        return ArrowKey::Left;
+      if (sequence[1] >= '0' && sequence[1] <= '9') {
+        if (read(STDIN_FILENO, &sequence[2], 1) != 1)
+          return '\x1b';
+        if (sequence[2] == '~') {
+          switch (sequence[1]) {
+          case '5':
+            return EditorKey::PageUp;
+          case '6':
+            return EditorKey::PageDown;
+          }
+        }
+      } else {
+        switch (sequence[1]) {
+        case 'A':
+          return EditorKey::Up;
+        case 'B':
+          return EditorKey::Down;
+        case 'C':
+          return EditorKey::Right;
+        case 'D':
+          return EditorKey::Left;
+        }
       }
     }
 
@@ -199,22 +221,22 @@ void Editor::display_welcome_message() {
 
 void Editor::move_cursor(int key) {
   switch (key) {
-  case ArrowKey::Left:
+  case EditorKey::Left:
     if (this->cursor_position.x != 0) {
       this->cursor_position.x--;
     }
     break;
-  case ArrowKey::Right:
+  case EditorKey::Right:
     if (this->cursor_position.x != this->window->width - 1) {
       this->cursor_position.x++;
     }
     break;
-  case ArrowKey::Up:
+  case EditorKey::Up:
     if (this->cursor_position.y != 0) {
       this->cursor_position.y--;
     }
     break;
-  case ArrowKey::Down:
+  case EditorKey::Down:
     if (this->cursor_position.y != this->window->height - 1) {
       this->cursor_position.y++;
     }

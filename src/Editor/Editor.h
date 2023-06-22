@@ -23,7 +23,7 @@ struct CursorPosition {
   int y;
 };
 
-enum ArrowKey { Left = 1000, Right, Up, Down };
+enum EditorKey { Left = 1000, Right, Up, Down, PageUp, PageDown };
 
 class Editor {
 public:
