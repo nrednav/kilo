@@ -37,23 +37,23 @@ void Editor::initialize() {
 Window* Editor::create_window() {
   static Window window{};
 
-  struct winsize windowSize;
-  bool gotWindowSize = ioctl(STDOUT_FILENO, TIOCGWINSZ, &windowSize) != -1;
+  struct winsize window_size;
+  bool got_window_size = ioctl(STDOUT_FILENO, TIOCGWINSZ, &window_size) != -1;
 
-  if (!gotWindowSize || windowSize.ws_col == 0) {
+  if (!got_window_size || window_size.ws_col == 0) {
     if (write(STDOUT_FILENO, this->escape_map["bottom_right_corner"].c_str(),
               12) != 12) {
       throw std::runtime_error{
           "create_window: could not reposition cursor to bottom-right edge"};
     }
 
-    CursorPosition cursorPosition = this->get_cursor_position();
-    window.width = cursorPosition.x;
-    window.height = cursorPosition.y;
+    CursorPosition cursor_pos = this->get_cursor_position();
+    window.width = cursor_pos.x;
+    window.height = cursor_pos.y;
   }
 
-  window.width = windowSize.ws_col;
-  window.height = windowSize.ws_row;
+  window.width = window_size.ws_col;
+  window.height = window_size.ws_row;
 
   return &window;
 }
