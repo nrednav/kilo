@@ -192,16 +192,24 @@ void Editor::display_welcome_message() {
 void Editor::move_cursor(int key) {
   switch (key) {
   case ArrowKey::Left:
-    this->cursor_position.x--;
+    if (this->cursor_position.x != 0) {
+      this->cursor_position.x--;
+    }
     break;
   case ArrowKey::Right:
-    this->cursor_position.x++;
+    if (this->cursor_position.x != this->window->width - 1) {
+      this->cursor_position.x++;
+    }
     break;
   case ArrowKey::Up:
-    this->cursor_position.y--;
+    if (this->cursor_position.y != 0) {
+      this->cursor_position.y--;
+    }
     break;
   case ArrowKey::Down:
-    this->cursor_position.y++;
+    if (this->cursor_position.y != this->window->height - 1) {
+      this->cursor_position.y++;
+    }
     break;
   }
 }
