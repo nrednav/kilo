@@ -9,8 +9,9 @@ Terminal::~Terminal() {
 }
 
 void Terminal::enable_raw_mode() {
-  if (tcgetattr(STDIN_FILENO, &this->termios) == -1)
+  if (tcgetattr(STDIN_FILENO, &this->termios) == -1) {
     this->terminate("tcgetattr");
+  }
 
   struct termios raw = this->termios;
   raw.c_iflag &= ~(ICRNL | IXON | BRKINT | INPCK | ISTRIP);
@@ -20,13 +21,15 @@ void Terminal::enable_raw_mode() {
   raw.c_cc[VMIN] = 0;
   raw.c_cc[VTIME] = 1;
 
-  if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw) == -1)
+  if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw) == -1) {
     this->terminate("tcsetattr");
+  }
 }
 
 void Terminal::disable_raw_mode() {
-  if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &this->termios) == -1)
+  if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &this->termios) == -1) {
     this->terminate("tcsetattr");
+  }
 }
 
 void Terminal::terminate(const std::string& reason) {
