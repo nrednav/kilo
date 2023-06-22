@@ -229,22 +229,26 @@ int Editor::read_key() {
 }
 
 void Editor::display_welcome_message() {
-  char welcome[80];
-  int welcome_length = snprintf(welcome, sizeof(welcome),
-                                "Kilo Editor -- Version %s", KILO_VERSION);
+  char message[80];
+  int length = snprintf(message, sizeof(message), "Kilo Editor -- Version %s",
+                        KILO_VERSION);
 
-  if (welcome_length > this->window->width)
-    welcome_length = this->window->width;
+  if (length > this->window->width) {
+    length = this->window->width;
+  }
 
-  int padding = (this->window->width - welcome_length) / 2;
+  int padding = (this->window->width - length) / 2;
+
   if (padding) {
     this->screen_buffer->append("~");
     padding--;
   }
-  while (padding--)
-    this->screen_buffer->append(" ");
 
-  this->screen_buffer->append(welcome);
+  while (padding--) {
+    this->screen_buffer->append(" ");
+  }
+
+  this->screen_buffer->append(message);
 }
 
 void Editor::move_cursor(int key) {
