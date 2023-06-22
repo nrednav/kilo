@@ -13,11 +13,13 @@ void AppendBuffer::flush() {
 void AppendBuffer::append(const std::string& text) {
   char* memory = (char*)realloc(this->contents, this->length + text.length());
 
-  if (memory == nullptr)
+  if (memory == nullptr) {
     throw std::runtime_error{
         "append: could not realloc memory for append buffer"};
+  }
 
   std::memcpy(&memory[this->length], text.c_str(), text.length());
+
   this->contents = memory;
   this->length += text.length();
 }
