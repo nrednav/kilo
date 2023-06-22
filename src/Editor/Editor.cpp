@@ -133,6 +133,13 @@ void Editor::process_input() {
     this->terminal->terminate("quit initiated");
     break;
 
+  case EditorKey::Home:
+    this->cursor_position.x = 0;
+    break;
+  case EditorKey::End:
+    this->cursor_position.x = this->window->width - 1;
+    break;
+
   case EditorKey::PageUp:
   case EditorKey::PageDown: {
     int times = this->window->height;
@@ -174,10 +181,18 @@ int Editor::read_key() {
           return '\x1b';
         if (sequence[2] == '~') {
           switch (sequence[1]) {
+          case '1':
+            return EditorKey::Home;
+          case '4':
+            return EditorKey::End;
           case '5':
             return EditorKey::PageUp;
           case '6':
             return EditorKey::PageDown;
+          case '7':
+            return EditorKey::Home;
+          case '8':
+            return EditorKey::End;
           }
         }
       } else {
@@ -190,7 +205,18 @@ int Editor::read_key() {
           return EditorKey::Right;
         case 'D':
           return EditorKey::Left;
+        case 'H':
+          return EditorKey::Home;
+        case 'F':
+          return EditorKey::End;
         }
+      }
+    } else if (sequence[0] == 'O') {
+      switch (sequence[1]) {
+      case 'H':
+        return EditorKey::Home;
+      case 'F':
+        return EditorKey::End;
       }
     }
 

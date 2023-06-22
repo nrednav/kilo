@@ -13,6 +13,8 @@
 #define KILO_VERSION "0.0.1"
 #define CTRL_KEY(key) ((key)&0x1f);
 
+typedef std::map<std::string, std::string> EscapeMap;
+
 struct Window {
   int width;
   int height;
@@ -23,7 +25,7 @@ struct CursorPosition {
   int y;
 };
 
-enum EditorKey { Left = 1000, Right, Up, Down, PageUp, PageDown };
+enum EditorKey { Left = 1000, Right, Up, Down, PageUp, PageDown, Home, End };
 
 class Editor {
 public:
@@ -35,7 +37,7 @@ private:
   Window* window;
   std::unique_ptr<AppendBuffer> screen_buffer;
   CursorPosition cursor_position;
-  std::map<std::string, std::string> escape_map;
+  EscapeMap escape_map;
 
   void initialize();
   void refresh_screen();
