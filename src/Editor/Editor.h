@@ -23,6 +23,8 @@ struct CursorPosition {
   int y;
 };
 
+enum ArrowKey { Left = 1000, Right, Up, Down };
+
 class Editor {
 public:
   Editor();
@@ -40,8 +42,8 @@ private:
   void draw();
   void process_input();
   void display_welcome_message();
-  char read_key();
-  void move_cursor(char key);
+  int read_key();
+  void move_cursor(int key);
   Window* create_window();
   CursorPosition get_cursor_position();
 };

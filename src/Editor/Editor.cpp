@@ -117,7 +117,7 @@ void Editor::draw() {
 }
 
 void Editor::process_input() {
-  char key = this->read_key();
+  int key = this->read_key();
 
   switch (key) {
   case 0x1f & 'q': // Ctrl-q
@@ -125,21 +125,46 @@ void Editor::process_input() {
     this->terminal->terminate("quit initiated");
     break;
 
-  case 'w':
-  case 'a':
-  case 's':
-  case 'd':
+  case ArrowKey::Left:
+  case ArrowKey::Right:
+  case ArrowKey::Up:
+  case ArrowKey::Down:
     this->move_cursor(key);
   }
 }
 
-char Editor::read_key() {
+int Editor::read_key() {
   int numBytesRead = 0;
   char key;
 
   while ((read(STDIN_FILENO, &key, 1)) != 1) {
     if (numBytesRead == -1 && errno != EAGAIN)
       this->terminal->terminate("read_key");
+  }
+
+  if (key == '\x1b') {
+    char sequence[3];
+
+    if (read(STDIN_FILENO, &sequence[0], 1) != 1)
+      return '\x1b';
+
+    if (read(STDIN_FILENO, &sequence[1], 1) != 1)
+      return '\x1b';
+
+    if (sequence[0] == '[') {
+      switch (sequence[1]) {
+      case 'A':
+        return ArrowKey::Up;
+      case 'B':
+        return ArrowKey::Down;
+      case 'C':
+        return ArrowKey::Right;
+      case 'D':
+        return ArrowKey::Left;
+      }
+    }
+
+    return '\x1b';
   }
 
   return key;
@@ -164,18 +189,18 @@ void Editor::display_welcome_message() {
   this->screen_buffer->append(welcome);
 }
 
-void Editor::move_cursor(char key) {
+void Editor::move_cursor(int key) {
   switch (key) {
-  case 'a':
+  case ArrowKey::Left:
     this->cursor_position.x--;
     break;
-  case 'd':
+  case ArrowKey::Right:
     this->cursor_position.x++;
     break;
-  case 'w':
+  case ArrowKey::Up:
     this->cursor_position.y--;
     break;
-  case 's':
+  case ArrowKey::Down:
     this->cursor_position.y++;
     break;
   }
