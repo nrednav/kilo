@@ -59,9 +59,9 @@ Window* Editor::create_window() {
 }
 
 CursorPosition Editor::get_cursor_position() {
-  CursorPosition cursorPosition{};
+  CursorPosition cursor_pos{};
 
-  char buffer[32];
+  char cursor_pos_buffer[32];
   unsigned int i = 0;
 
   if (write(STDOUT_FILENO, this->escape_map["device_status"].c_str(), 4) != 4) {
@@ -69,25 +69,34 @@ CursorPosition Editor::get_cursor_position() {
         "get_cursor_position: could not retrieve device status report"};
   }
 
-  while (i < sizeof(buffer) - 1) {
-    if (read(STDIN_FILENO, &buffer[i], 1) != 1)
+  while (i < sizeof(cursor_pos_buffer) - 1) {
+    if (read(STDIN_FILENO, &cursor_pos_buffer[i], 1) != 1) {
       break;
-    if (buffer[i] == 'R')
+    }
+
+    if (cursor_pos_buffer[i] == 'R') {
       break;
+    }
+
     i++;
   }
 
-  buffer[i] = '\0';
+  cursor_pos_buffer[i] = '\0';
 
-  if (buffer[0] != '\x1b' || buffer[1] != '[')
+  if (cursor_pos_buffer[0] != '\x1b' || cursor_pos_buffer[1] != '[') {
     throw std::runtime_error{
         "get_cursor_position: could not detect escape sequence"};
+  }
 
-  if (sscanf(&buffer[2], "%d;%d", &cursorPosition.x, &cursorPosition.y) != 2)
+  int num_bytes_read =
+      sscanf(&cursor_pos_buffer[2], "%d;%d", &cursor_pos.x, &cursor_pos.y);
+
+  if (num_bytes_read != 2) {
     throw std::runtime_error{
         "get_cursor_position: could not extract x or y coordinates"};
+  }
 
-  return cursorPosition;
+  return cursor_pos;
 }
 
 void Editor::refresh_screen() {
@@ -132,14 +141,12 @@ void Editor::process_input() {
     this->terminal->disable_raw_mode();
     this->terminal->terminate("quit initiated");
     break;
-
   case EditorKey::Home:
     this->cursor_position.x = 0;
     break;
   case EditorKey::End:
     this->cursor_position.x = this->window->width - 1;
     break;
-
   case EditorKey::PageUp:
   case EditorKey::PageDown: {
     int times = this->window->height;
@@ -148,7 +155,6 @@ void Editor::process_input() {
                                                  : EditorKey::Down);
     }
   }
-
   case EditorKey::Left:
   case EditorKey::Right:
   case EditorKey::Up:
