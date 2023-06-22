@@ -158,27 +158,32 @@ void Editor::process_input() {
 }
 
 int Editor::read_key() {
-  int numBytesRead = 0;
+  int num_bytes_read = 0;
   char key;
 
-  while ((read(STDIN_FILENO, &key, 1)) != 1) {
-    if (numBytesRead == -1 && errno != EAGAIN)
+  while ((num_bytes_read = read(STDIN_FILENO, &key, 1)) != 1) {
+    if (num_bytes_read == -1 && errno != EAGAIN) {
       this->terminal->terminate("read_key");
+    }
   }
 
   if (key == '\x1b') {
     char sequence[3];
 
-    if (read(STDIN_FILENO, &sequence[0], 1) != 1)
+    if (read(STDIN_FILENO, &sequence[0], 1) != 1) {
       return '\x1b';
+    }
 
-    if (read(STDIN_FILENO, &sequence[1], 1) != 1)
+    if (read(STDIN_FILENO, &sequence[1], 1) != 1) {
       return '\x1b';
+    }
 
     if (sequence[0] == '[') {
       if (sequence[1] >= '0' && sequence[1] <= '9') {
-        if (read(STDIN_FILENO, &sequence[2], 1) != 1)
+        if (read(STDIN_FILENO, &sequence[2], 1) != 1) {
           return '\x1b';
+        }
+
         if (sequence[2] == '~') {
           switch (sequence[1]) {
           case '1':
