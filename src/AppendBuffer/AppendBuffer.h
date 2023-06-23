@@ -4,6 +4,8 @@
 #include <string>
 #include <stdlib.h>
 #include <unistd.h>
+#include <memory>
+#include <cstring>
 
 class AppendBuffer {
 public:
