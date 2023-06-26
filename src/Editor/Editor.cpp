@@ -122,10 +122,17 @@ void Editor::refresh_screen() {
 
 void Editor::draw() {
   for (int row = 0; row < window->height; row++) {
-    if (row == window->height / 3) {
-      display_welcome_message();
+    if (row >= line_count) {
+      if (line_count == 0 && row == window->height / 3) {
+        display_welcome_message();
+      } else {
+        screen_buffer->append("~");
+      }
     } else {
-      screen_buffer->append("~");
+      if (line.size > window->width) {
+        line.contents[window->width] = '\0';
+      }
+      screen_buffer->append(line.contents);
     }
 
     if (row < window->height - 1) {
@@ -287,4 +294,35 @@ void Editor::move_cursor(int key) {
     }
     break;
   }
+}
+
+void Editor::open(char* filename) {
+  FILE* fp = fopen(filename, "r");
+  if (!fp) {
+    terminal->terminate("fopen");
+  }
+
+  char* line{nullptr};
+  size_t line_cap{0};
+  ssize_t line_length{0};
+
+  line_length = getline(&line, &line_cap, fp);
+
+  if (line_length != -1) {
+    bool is_new_line = line[line_length - 1] == '\n';
+    bool is_carriage_return = line[line_length - 1] == '\r';
+    while (line_length > 0 && (is_new_line || is_carriage_return)) {
+      line_length--;
+    }
+
+    this->line.size = line_length;
+    this->line.contents = (char*)malloc(line_length + 1);
+    std::memcpy(this->line.contents, line, line_length);
+
+    this->line.contents[line_length] = '\0';
+    this->line_count = 1;
+  }
+
+  free(line);
+  fclose(fp);
 }

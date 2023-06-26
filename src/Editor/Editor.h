@@ -1,11 +1,18 @@
 #ifndef EDITOR_H
 #define EDITOR_H
 
+#define _DEFAULT_SOURCE
+#define _BSD_SOURCE
+#define _GNU_SOURCE
+
 #include <map>
 #include <sys/ioctl.h>
+#include <sys/types.h>
 #include <iostream>
-#include <stdexcept>
 #include <stdio.h>
+#include <cstdlib>
+#include <cstring>
+#include <stdexcept>
 
 #include "../Terminal/Terminal.h"
 #include "../AppendBuffer/AppendBuffer.h"
@@ -46,6 +53,7 @@ class Editor {
 public:
   Editor();
   ~Editor();
+  void open(char* filename);
 
 private:
   std::unique_ptr<Terminal> terminal{nullptr};
