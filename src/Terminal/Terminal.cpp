@@ -1,19 +1,19 @@
 #include "Terminal.h"
 
 Terminal::Terminal() {
-  this->enable_raw_mode();
+  enable_raw_mode();
 }
 
 Terminal::~Terminal() {
-  this->disable_raw_mode();
+  disable_raw_mode();
 }
 
 void Terminal::enable_raw_mode() {
-  if (tcgetattr(STDIN_FILENO, &this->termios) == -1) {
-    this->terminate("tcgetattr");
+  if (tcgetattr(STDIN_FILENO, &termios) == -1) {
+    terminate("tcgetattr");
   }
 
-  struct termios raw = this->termios;
+  struct termios raw = termios;
   raw.c_iflag &= ~(ICRNL | IXON | BRKINT | INPCK | ISTRIP);
   raw.c_oflag &= ~(OPOST);
   raw.c_cflag |= ~(CS8);
@@ -22,13 +22,13 @@ void Terminal::enable_raw_mode() {
   raw.c_cc[VTIME] = 1;
 
   if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw) == -1) {
-    this->terminate("tcsetattr");
+    terminate("tcsetattr");
   }
 }
 
 void Terminal::disable_raw_mode() {
-  if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &this->termios) == -1) {
-    this->terminate("tcsetattr");
+  if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &termios) == -1) {
+    terminate("tcsetattr");
   }
 }
 

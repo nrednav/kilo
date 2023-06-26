@@ -25,6 +25,11 @@ struct CursorPosition {
   int y;
 };
 
+struct Line {
+  int size;
+  char* contents;
+};
+
 enum EditorKey {
   Left = 1000,
   Right,
@@ -43,11 +48,13 @@ public:
   ~Editor();
 
 private:
-  std::unique_ptr<Terminal> terminal;
-  Window* window;
-  std::unique_ptr<AppendBuffer> screen_buffer;
+  std::unique_ptr<Terminal> terminal{nullptr};
+  std::unique_ptr<AppendBuffer> screen_buffer{nullptr};
+  Window* window{nullptr};
   CursorPosition cursor_position;
   EscapeMap escape_map;
+  Line line;
+  int line_count{0};
 
   void initialize();
   void refresh_screen();

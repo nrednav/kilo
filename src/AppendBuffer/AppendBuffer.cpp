@@ -3,37 +3,37 @@
 AppendBuffer::AppendBuffer() : contents(nullptr), length{0} {}
 
 AppendBuffer::~AppendBuffer() {
-  free(this->contents);
+  free(contents);
 }
 
 void AppendBuffer::flush() {
-  write(STDOUT_FILENO, this->contents, this->length);
+  write(STDOUT_FILENO, contents, length);
 }
 
 void AppendBuffer::append(const std::string& text) {
-  char* memory = (char*)realloc(this->contents, this->length + text.length());
+  char* memory = (char*)realloc(contents, length + text.length());
 
   if (memory == nullptr) {
     throw std::runtime_error{
         "append: could not realloc memory for append buffer"};
   }
 
-  std::memcpy(&memory[this->length], text.c_str(), text.length());
+  std::memcpy(&memory[length], text.c_str(), text.length());
 
-  this->contents = memory;
-  this->length += text.length();
+  contents = memory;
+  length += text.length();
 }
 
 void AppendBuffer::clear() {
-  free(this->contents);
-  this->contents = nullptr;
-  this->length = 0;
+  free(contents);
+  contents = nullptr;
+  length = 0;
 }
 
 const int& AppendBuffer::get_length() const {
-  return this->length;
+  return length;
 }
 
 const char* AppendBuffer::get_contents() const {
-  return this->contents;
+  return contents;
 }

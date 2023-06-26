@@ -2,11 +2,11 @@
 
 Editor::Editor() {
   try {
-    this->initialize();
+    initialize();
 
     while (true) {
-      this->refresh_screen();
-      this->process_input();
+      refresh_screen();
+      process_input();
     }
   } catch (std::exception const& e) {
     std::cout << e.what() << std::endl;
@@ -14,24 +14,25 @@ Editor::Editor() {
 }
 
 Editor::~Editor() {
-  this->terminal = nullptr;
-  this->window = nullptr;
-  this->screen_buffer = nullptr;
+  terminal = nullptr;
+  window = nullptr;
+  screen_buffer = nullptr;
 }
 
 void Editor::initialize() {
-  this->terminal = std::make_unique<Terminal>();
-  this->window = this->create_window();
-  this->screen_buffer = std::make_unique<AppendBuffer>();
-  this->cursor_position = CursorPosition{0, 0};
+  terminal = std::make_unique<Terminal>();
+  window = create_window();
+  screen_buffer = std::make_unique<AppendBuffer>();
+  cursor_position = CursorPosition{0, 0};
+  line_count = 0;
 
-  this->escape_map["show_cursor"] = "\x1b[?25l";
-  this->escape_map["hide_cursor"] = "\x1b[?25h";
-  this->escape_map["cursor_pos"] = "\x1b[%d;%dH";
-  this->escape_map["reset_cursor_pos"] = "\x1b[H";
-  this->escape_map["clear_screen"] = "\x1b[2J";
-  this->escape_map["bottom_right_corner"] = "\x1b[999C\x1b[999B";
-  this->escape_map["device_status"] = "\x1b[6n";
+  escape_map["show_cursor"] = "\x1b[?25l";
+  escape_map["hide_cursor"] = "\x1b[?25h";
+  escape_map["cursor_pos"] = "\x1b[%d;%dH";
+  escape_map["reset_cursor_pos"] = "\x1b[H";
+  escape_map["clear_screen"] = "\x1b[2J";
+  escape_map["bottom_right_corner"] = "\x1b[999C\x1b[999B";
+  escape_map["device_status"] = "\x1b[6n";
 }
 
 Window* Editor::create_window() {
@@ -41,13 +42,13 @@ Window* Editor::create_window() {
   bool got_window_size = ioctl(STDOUT_FILENO, TIOCGWINSZ, &window_size) != -1;
 
   if (!got_window_size || window_size.ws_col == 0) {
-    if (write(STDOUT_FILENO, this->escape_map["bottom_right_corner"].c_str(),
-              12) != 12) {
+    if (write(STDOUT_FILENO, escape_map["bottom_right_corner"].c_str(), 12) !=
+        12) {
       throw std::runtime_error{
           "create_window: could not reposition cursor to bottom-right edge"};
     }
 
-    CursorPosition cursor_pos = this->get_cursor_position();
+    CursorPosition cursor_pos = get_cursor_position();
     window.width = cursor_pos.x;
     window.height = cursor_pos.y;
   }
@@ -64,7 +65,7 @@ CursorPosition Editor::get_cursor_position() {
   char cursor_pos_buffer[32];
   unsigned int i = 0;
 
-  if (write(STDOUT_FILENO, this->escape_map["device_status"].c_str(), 4) != 4) {
+  if (write(STDOUT_FILENO, escape_map["device_status"].c_str(), 4) != 4) {
     throw std::runtime_error{
         "get_cursor_position: could not retrieve device status report"};
   }
@@ -100,66 +101,67 @@ CursorPosition Editor::get_cursor_position() {
 }
 
 void Editor::refresh_screen() {
-  this->screen_buffer->append(this->escape_map["show_cursor"]);
-  this->screen_buffer->append(this->escape_map["clear_screen"]);
-  this->screen_buffer->append(this->escape_map["reset_cursor_pos"]);
+  screen_buffer->append(escape_map["show_cursor"]);
+  screen_buffer->append(escape_map["clear_screen"]);
+  screen_buffer->append(escape_map["reset_cursor_pos"]);
 
-  this->draw();
+  draw();
 
   // Move cursor
   char cursor_buffer[32];
   snprintf(cursor_buffer, sizeof(cursor_buffer),
-           this->escape_map["cursor_pos"].c_str(), this->cursor_position.y + 1,
-           this->cursor_position.x + 1);
-  this->screen_buffer->append(cursor_buffer);
+           escape_map["cursor_pos"].c_str(), cursor_position.y + 1,
+           cursor_position.x + 1);
+  screen_buffer->append(cursor_buffer);
 
-  this->screen_buffer->append(this->escape_map["hide_cursor"]);
+  screen_buffer->append(escape_map["hide_cursor"]);
 
-  this->screen_buffer->flush();
-  this->screen_buffer->clear();
+  screen_buffer->flush();
+  screen_buffer->clear();
 }
 
 void Editor::draw() {
-  for (int row = 0; row < this->window->height; row++) {
-    if (row == this->window->height / 3) {
-      this->display_welcome_message();
+  for (int row = 0; row < window->height; row++) {
+    if (row == window->height / 3) {
+      display_welcome_message();
     } else {
-      this->screen_buffer->append("~");
+      screen_buffer->append("~");
     }
 
-    if (row < this->window->height - 1) {
-      this->screen_buffer->append("\r\n");
+    if (row < window->height - 1) {
+      screen_buffer->append("\r\n");
     }
   }
 }
 
 void Editor::process_input() {
-  int key = this->read_key();
+  int key = read_key();
 
   switch (key) {
   case 0x1f & 'q': // Ctrl-q
-    this->terminal->disable_raw_mode();
-    this->terminal->terminate("quit initiated");
+    terminal->disable_raw_mode();
+    terminal->terminate("quit initiated");
     break;
   case EditorKey::Home:
-    this->cursor_position.x = 0;
+    cursor_position.x = 0;
     break;
   case EditorKey::End:
-    this->cursor_position.x = this->window->width - 1;
+    cursor_position.x = window->width - 1;
     break;
   case EditorKey::PageUp:
   case EditorKey::PageDown: {
-    int times = this->window->height;
+    int times = window->height;
     while (times--) {
-      this->move_cursor(key == EditorKey::PageUp ? EditorKey::Up
-                                                 : EditorKey::Down);
+      move_cursor(key == EditorKey::PageUp ? EditorKey::Up : EditorKey::Down);
     }
+    break;
   }
   case EditorKey::Left:
   case EditorKey::Right:
   case EditorKey::Up:
   case EditorKey::Down:
-    this->move_cursor(key);
+    move_cursor(key);
+    break;
   }
 }
 
@@ -169,7 +171,7 @@ int Editor::read_key() {
 
   while ((num_bytes_read = read(STDIN_FILENO, &key, 1)) != 1) {
     if (num_bytes_read == -1 && errno != EAGAIN) {
-      this->terminal->terminate("read_key");
+      terminal->terminate("read_key");
     }
   }
 
@@ -244,44 +246,44 @@ void Editor::display_welcome_message() {
   int length = snprintf(message, sizeof(message), "Kilo Editor -- Version %s",
                         KILO_VERSION);
 
-  if (length > this->window->width) {
-    length = this->window->width;
+  if (length > window->width) {
+    length = window->width;
   }
 
-  int padding = (this->window->width - length) / 2;
+  int padding = (window->width - length) / 2;
 
   if (padding) {
-    this->screen_buffer->append("~");
+    screen_buffer->append("~");
     padding--;
   }
 
   while (padding--) {
-    this->screen_buffer->append(" ");
+    screen_buffer->append(" ");
   }
 
-  this->screen_buffer->append(message);
+  screen_buffer->append(message);
 }
 
 void Editor::move_cursor(int key) {
   switch (key) {
   case EditorKey::Left:
-    if (this->cursor_position.x != 0) {
-      this->cursor_position.x--;
+    if (cursor_position.x != 0) {
+      cursor_position.x--;
     }
     break;
   case EditorKey::Right:
-    if (this->cursor_position.x != this->window->width - 1) {
-      this->cursor_position.x++;
+    if (cursor_position.x != window->width - 1) {
+      cursor_position.x++;
     }
     break;
   case EditorKey::Up:
-    if (this->cursor_position.y != 0) {
-      this->cursor_position.y--;
+    if (cursor_position.y != 0) {
+      cursor_position.y--;
     }
     break;
   case EditorKey::Down:
-    if (this->cursor_position.y != this->window->height - 1) {
-      this->cursor_position.y++;
+    if (cursor_position.y != window->height - 1) {
+      cursor_position.y++;
     }
     break;
   }
