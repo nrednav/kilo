@@ -39,6 +39,7 @@ void Editor::initialize() {
   screen_buffer = std::make_unique<AppendBuffer>();
   cursor_position = CursorPosition{0, 0};
   vertical_scroll_offset = 0;
+  horizontal_scroll_offset = 0;
 
   escape_map["show_cursor"] = "\x1b[?25l";
   escape_map["hide_cursor"] = "\x1b[?25h";
@@ -137,9 +138,10 @@ void Editor::refresh_screen() {
 
   // Move cursor
   char cursor_buffer[32];
-  snprintf(
-      cursor_buffer, sizeof(cursor_buffer), escape_map["cursor_pos"].c_str(),
-      (cursor_position.y - vertical_scroll_offset) + 1, cursor_position.x + 1);
+  snprintf(cursor_buffer, sizeof(cursor_buffer),
+           escape_map["cursor_pos"].c_str(),
+           (cursor_position.y - vertical_scroll_offset) + 1,
+           (cursor_position.x - horizontal_scroll_offset) + 1);
 
   screen_buffer->append(cursor_buffer);
 
@@ -160,13 +162,18 @@ void Editor::draw() {
         screen_buffer->append("~");
       }
     } else {
-      int line_length = lines[row_in_file].length();
+      int line_length = lines[row_in_file].length() - horizontal_scroll_offset;
+
+      if (line_length < 0) {
+        lines[row_in_file].resize(0);
+      }
 
       if (line_length > window->width) {
         lines[row_in_file].resize(window->width);
       }
 
-      screen_buffer->append(lines[row_in_file]);
+      screen_buffer->append(
+          lines[row_in_file].substr(horizontal_scroll_offset));
     }
 
     if (row < window->height - 1) {
@@ -313,9 +320,7 @@ void Editor::move_cursor(int key) {
     }
     break;
   case EditorKey::Right:
-    if (cursor_position.x != window->width - 1) {
-      cursor_position.x++;
-    }
+    cursor_position.x++;
     break;
   case EditorKey::Up:
     if (cursor_position.y != 0) {
@@ -337,5 +342,13 @@ void Editor::scroll() {
 
   if (cursor_position.y >= vertical_scroll_offset + window->height) {
     vertical_scroll_offset = cursor_position.y - window->height + 1;
+  }
+
+  if (cursor_position.x < horizontal_scroll_offset) {
+    horizontal_scroll_offset = cursor_position.x;
+  }
+
+  if (cursor_position.x >= horizontal_scroll_offset + window->width) {
+    horizontal_scroll_offset = cursor_position.x - window->width + 1;
   }
 }

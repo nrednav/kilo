@@ -63,6 +63,7 @@ private:
   EscapeMap escape_map;
   std::vector<std::string> lines;
   int vertical_scroll_offset;
+  int horizontal_scroll_offset;
 
   void initialize();
   void refresh_screen();
