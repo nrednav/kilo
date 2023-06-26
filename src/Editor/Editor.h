@@ -62,17 +62,19 @@ private:
   CursorPosition cursor_position;
   EscapeMap escape_map;
   std::vector<std::string> lines;
+  int vertical_scroll_offset;
 
   void initialize();
   void refresh_screen();
   void draw();
   void process_input();
   void display_welcome_message();
-  int read_key();
   void move_cursor(int key);
+  void scroll();
+
+  int read_key();
   Window* create_window();
   CursorPosition get_cursor_position();
-  void append_line(char* text, size_t length);
 };
 
 #endif // !EDITOR_H

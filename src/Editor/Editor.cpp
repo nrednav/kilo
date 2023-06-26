@@ -38,6 +38,7 @@ void Editor::initialize() {
   window = create_window();
   screen_buffer = std::make_unique<AppendBuffer>();
   cursor_position = CursorPosition{0, 0};
+  vertical_scroll_offset = 0;
 
   escape_map["show_cursor"] = "\x1b[?25l";
   escape_map["hide_cursor"] = "\x1b[?25h";
@@ -56,7 +57,7 @@ void Editor::open(char* filename) {
   }
 
   for (std::string line; std::getline(file, line);) {
-    this->lines.push_back(std::move(line));
+    lines.push_back(std::move(line));
   }
 }
 
@@ -126,6 +127,8 @@ CursorPosition Editor::get_cursor_position() {
 }
 
 void Editor::refresh_screen() {
+  scroll();
+
   screen_buffer->append(escape_map["show_cursor"]);
   screen_buffer->append(escape_map["clear_screen"]);
   screen_buffer->append(escape_map["reset_cursor_pos"]);
@@ -134,9 +137,10 @@ void Editor::refresh_screen() {
 
   // Move cursor
   char cursor_buffer[32];
-  snprintf(cursor_buffer, sizeof(cursor_buffer),
-           escape_map["cursor_pos"].c_str(), cursor_position.y + 1,
-           cursor_position.x + 1);
+  snprintf(
+      cursor_buffer, sizeof(cursor_buffer), escape_map["cursor_pos"].c_str(),
+      (cursor_position.y - vertical_scroll_offset) + 1, cursor_position.x + 1);
+
   screen_buffer->append(cursor_buffer);
 
   screen_buffer->append(escape_map["hide_cursor"]);
@@ -147,21 +151,22 @@ void Editor::refresh_screen() {
 
 void Editor::draw() {
   for (int row = 0; row < window->height; row++) {
+    int row_in_file = row + vertical_scroll_offset;
     // If no lines have been read, display editor startup screen
-    if (row >= (int)this->lines.size()) {
-      if (this->lines.size() == 0 && row == window->height / 3) {
+    if (row_in_file >= (int)lines.size()) {
+      if (lines.size() == 0 && row == window->height / 3) {
         display_welcome_message();
       } else {
         screen_buffer->append("~");
       }
     } else {
-      int line_length = this->lines[row].length();
+      int line_length = lines[row_in_file].length();
 
       if (line_length > window->width) {
-        this->lines[row].resize(window->width);
+        lines[row_in_file].resize(window->width);
       }
 
-      screen_buffer->append(this->lines[row]);
+      screen_buffer->append(lines[row_in_file]);
     }
 
     if (row < window->height - 1) {
@@ -318,9 +323,19 @@ void Editor::move_cursor(int key) {
     }
     break;
   case EditorKey::Down:
-    if (cursor_position.y != window->height - 1) {
+    if (cursor_position.y < (int)lines.size()) {
       cursor_position.y++;
     }
     break;
+  }
+}
+
+void Editor::scroll() {
+  if (cursor_position.y < vertical_scroll_offset) {
+    vertical_scroll_offset = cursor_position.y;
+  }
+
+  if (cursor_position.y >= vertical_scroll_offset + window->height) {
+    vertical_scroll_offset = cursor_position.y - window->height + 1;
   }
 }
