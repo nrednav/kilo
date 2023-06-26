@@ -1,10 +1,10 @@
 #include "Editor/Editor.h"
 
 int main(int argc, char* argv[]) {
-  Editor editor{};
-
   if (argc >= 2) {
-    editor.open(argv[1]);
+    Editor editor{argv[1]};
+  } else {
+    Editor editor{};
   }
 
   return 0;

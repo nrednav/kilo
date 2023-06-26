@@ -13,6 +13,20 @@ Editor::Editor() {
   }
 }
 
+Editor::Editor(char* filename) {
+  try {
+    initialize();
+    open(filename);
+
+    while (true) {
+      refresh_screen();
+      process_input();
+    }
+  } catch (std::exception const& e) {
+    std::cout << e.what() << std::endl;
+  }
+}
+
 Editor::~Editor() {
   terminal = nullptr;
   window = nullptr;
@@ -24,7 +38,6 @@ void Editor::initialize() {
   window = create_window();
   screen_buffer = std::make_unique<AppendBuffer>();
   cursor_position = CursorPosition{0, 0};
-  line_count = 0;
 
   escape_map["show_cursor"] = "\x1b[?25l";
   escape_map["hide_cursor"] = "\x1b[?25h";
@@ -33,6 +46,18 @@ void Editor::initialize() {
   escape_map["clear_screen"] = "\x1b[2J";
   escape_map["bottom_right_corner"] = "\x1b[999C\x1b[999B";
   escape_map["device_status"] = "\x1b[6n";
+}
+
+void Editor::open(char* filename) {
+  std::ifstream file{filename};
+
+  if (!file.is_open()) {
+    terminal->terminate("open: could not open file");
+  }
+
+  for (std::string line; std::getline(file, line);) {
+    this->lines.push_back(std::move(line));
+  }
 }
 
 Window* Editor::create_window() {
@@ -122,17 +147,21 @@ void Editor::refresh_screen() {
 
 void Editor::draw() {
   for (int row = 0; row < window->height; row++) {
-    if (row >= line_count) {
-      if (line_count == 0 && row == window->height / 3) {
+    // If no lines have been read, display editor startup screen
+    if (row >= (int)this->lines.size()) {
+      if (this->lines.size() == 0 && row == window->height / 3) {
         display_welcome_message();
       } else {
         screen_buffer->append("~");
       }
     } else {
-      if (line.size > window->width) {
-        line.contents[window->width] = '\0';
+      int line_length = this->lines[row].length();
+
+      if (line_length > window->width) {
+        this->lines[row].resize(window->width);
       }
-      screen_buffer->append(line.contents);
+
+      screen_buffer->append(this->lines[row]);
     }
 
     if (row < window->height - 1) {
@@ -294,35 +323,4 @@ void Editor::move_cursor(int key) {
     }
     break;
   }
-}
-
-void Editor::open(char* filename) {
-  FILE* fp = fopen(filename, "r");
-  if (!fp) {
-    terminal->terminate("fopen");
-  }
-
-  char* line{nullptr};
-  size_t line_cap{0};
-  ssize_t line_length{0};
-
-  line_length = getline(&line, &line_cap, fp);
-
-  if (line_length != -1) {
-    bool is_new_line = line[line_length - 1] == '\n';
-    bool is_carriage_return = line[line_length - 1] == '\r';
-    while (line_length > 0 && (is_new_line || is_carriage_return)) {
-      line_length--;
-    }
-
-    this->line.size = line_length;
-    this->line.contents = (char*)malloc(line_length + 1);
-    std::memcpy(this->line.contents, line, line_length);
-
-    this->line.contents[line_length] = '\0';
-    this->line_count = 1;
-  }
-
-  free(line);
-  fclose(fp);
 }

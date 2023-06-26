@@ -1,10 +1,8 @@
 #ifndef EDITOR_H
 #define EDITOR_H
 
-#define _DEFAULT_SOURCE
-#define _BSD_SOURCE
-#define _GNU_SOURCE
-
+#include <vector>
+#include <string>
 #include <map>
 #include <sys/ioctl.h>
 #include <sys/types.h>
@@ -13,6 +11,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <stdexcept>
+#include <fstream>
 
 #include "../Terminal/Terminal.h"
 #include "../AppendBuffer/AppendBuffer.h"
@@ -52,6 +51,7 @@ enum EditorKey {
 class Editor {
 public:
   Editor();
+  Editor(char* filename);
   ~Editor();
   void open(char* filename);
 
@@ -61,8 +61,7 @@ private:
   Window* window{nullptr};
   CursorPosition cursor_position;
   EscapeMap escape_map;
-  Line line;
-  int line_count{0};
+  std::vector<std::string> lines;
 
   void initialize();
   void refresh_screen();
@@ -73,6 +72,7 @@ private:
   void move_cursor(int key);
   Window* create_window();
   CursorPosition get_cursor_position();
+  void append_line(char* text, size_t length);
 };
 
 #endif // !EDITOR_H
