@@ -1,9 +1,11 @@
 #include "Editor.h"
 #include <cstdio>
+#include <stdarg.h>
 
 Editor::Editor() {
   try {
     initialize();
+    set_status_message("HELP: Ctrl-Q = Quit");
 
     while (true) {
       refresh_screen();
@@ -18,6 +20,7 @@ Editor::Editor(const std::string& filename) {
   try {
     initialize();
     open(filename);
+    set_status_message("HELP: Ctrl-Q = Quit");
 
     while (true) {
       refresh_screen();
@@ -42,10 +45,10 @@ void Editor::initialize() {
   vertical_scroll_offset = 0;
   horizontal_scroll_offset = 0;
   filename = "";
+  status_message.contents[0] = '\0';
+  status_message.timestamp = 0;
 
   // Make space for status bar
-  window->height -= 1;
-
   escape_map["show_cursor"] = "\x1b[?25l";
   escape_map["hide_cursor"] = "\x1b[?25h";
   escape_map["cursor_pos"] = "\x1b[%d;%dH";
@@ -53,6 +56,11 @@ void Editor::initialize() {
   escape_map["clear_screen"] = "\x1b[2J";
   escape_map["bottom_right_corner"] = "\x1b[999C\x1b[999B";
   escape_map["device_status"] = "\x1b[6n";
+  escape_map["invert_colors"] = "\x1b[7m";
+  escape_map["normal_colors"] = "\x1b[m";
+  escape_map["clear_line"] = "\x1b[K";
+
+  window->height -= 2;
 }
 
 void Editor::open(const std::string& filename) {
@@ -143,6 +151,7 @@ void Editor::refresh_screen() {
 
   draw();
   draw_status_bar();
+  draw_message_bar();
 
   // Move cursor
   char cursor_buffer[32];
@@ -406,7 +415,7 @@ void Editor::replace_tabs_with_spaces(int line_number) {
 }
 
 void Editor::draw_status_bar() {
-  screen_buffer->append("\x1b[7m");
+  screen_buffer->append(escape_map["invert_colors"]);
 
   char left_status[80];
   char right_status[80];
@@ -441,5 +450,29 @@ void Editor::draw_status_bar() {
     }
   }
 
-  screen_buffer->append("\x1b[m");
+  screen_buffer->append(escape_map["normal_colors"]);
+  screen_buffer->append("\r\n");
+}
+
+void Editor::set_status_message(const char* formatted_string, ...) {
+  va_list ap;
+  va_start(ap, formatted_string);
+  vsnprintf(status_message.contents, sizeof(status_message.contents),
+            formatted_string, ap);
+  va_end(ap);
+  status_message.timestamp = time(NULL);
+}
+
+void Editor::draw_message_bar() {
+  screen_buffer->append(escape_map["clear_line"]);
+
+  int message_length = strlen(status_message.contents);
+
+  if (message_length > window->width) {
+    message_length = window->width;
+  }
+
+  if (message_length && time(NULL) - status_message.timestamp < 5) {
+    screen_buffer->append(status_message.contents);
+  }
 }

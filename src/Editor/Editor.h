@@ -10,6 +10,7 @@
 #include <stdio.h>
 #include <cstdlib>
 #include <cstring>
+#include <cstdio>
 #include <stdexcept>
 #include <fstream>
 #include <algorithm>
@@ -32,6 +33,11 @@ struct Window {
 struct CursorPosition {
   int x;
   int y;
+};
+
+struct StatusMessage {
+  char contents[80];
+  time_t timestamp{0};
 };
 
 enum EditorKey {
@@ -59,6 +65,7 @@ private:
   Window* window{nullptr};
   CursorPosition cursor_position;
   EscapeMap escape_map;
+  StatusMessage status_message;
   std::vector<std::string> lines;
   int vertical_scroll_offset;
   int horizontal_scroll_offset;
@@ -69,6 +76,8 @@ private:
   void draw();
   void draw_line(int line_number);
   void draw_status_bar();
+  void draw_message_bar();
+  void set_status_message(const char* formatted_string, ...);
   void process_input();
   void display_welcome_message();
   void move_cursor(int key);
