@@ -153,33 +153,38 @@ void Editor::refresh_screen() {
 
 void Editor::draw() {
   for (int row = 0; row < window->height; row++) {
-    int row_in_file = row + vertical_scroll_offset;
+    int line_number = row + vertical_scroll_offset;
     // If no lines have been read, display editor startup screen
-    if (row_in_file >= (int)lines.size()) {
+    if (line_number >= (int)lines.size()) {
       if (lines.size() == 0 && row == window->height / 3) {
         display_welcome_message();
       } else {
         screen_buffer->append("~");
       }
     } else {
-      int line_length = lines[row_in_file].length() - horizontal_scroll_offset;
-
-      if (line_length < 0) {
-        lines[row_in_file].resize(0);
-      }
-
-      if (line_length > window->width) {
-        lines[row_in_file].resize(window->width);
-      }
-
-      screen_buffer->append(
-          lines[row_in_file].substr(horizontal_scroll_offset));
+      draw_line(line_number);
     }
 
     if (row < window->height - 1) {
       screen_buffer->append("\r\n");
     }
   }
+}
+
+void Editor::draw_line(int line_number) {
+  int line_length = lines[line_number].length() - horizontal_scroll_offset;
+
+  if (line_length < 0) {
+    lines[line_number].resize(0);
+  }
+
+  if (line_length > window->width) {
+    lines[line_number].resize(window->width);
+  }
+
+  replace_tabs_with_spaces(line_number);
+
+  screen_buffer->append(lines[line_number].substr(horizontal_scroll_offset));
 }
 
 void Editor::process_input() {
@@ -369,5 +374,17 @@ void Editor::scroll() {
 
   if (cursor_position.x >= horizontal_scroll_offset + window->width) {
     horizontal_scroll_offset = cursor_position.x - window->width + 1;
+  }
+}
+
+void Editor::replace_tabs_with_spaces(int line_number) {
+  std::string tab_char{"\t"};
+  std::string spaces(KILO_TAB_STOP, ' ');
+
+  auto char_index = lines[line_number].find("\t");
+
+  while (char_index != std::string::npos) {
+    lines[line_number].replace(char_index, tab_char.size(), spaces);
+    char_index = lines[line_number].find(tab_char);
   }
 }

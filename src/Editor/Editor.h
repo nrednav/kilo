@@ -12,11 +12,14 @@
 #include <cstring>
 #include <stdexcept>
 #include <fstream>
+#include <algorithm>
 
 #include "../Terminal/Terminal.h"
 #include "../AppendBuffer/AppendBuffer.h"
 
 #define KILO_VERSION "0.0.1"
+#define KILO_TAB_STOP 4
+
 #define CTRL_KEY(key) ((key)&0x1f);
 
 typedef std::map<std::string, std::string> EscapeMap;
@@ -63,10 +66,12 @@ private:
   void initialize();
   void refresh_screen();
   void draw();
+  void draw_line(int line_number);
   void process_input();
   void display_welcome_message();
   void move_cursor(int key);
   void scroll();
+  void replace_tabs_with_spaces(int line_number);
 
   int read_key();
   Window* create_window();
