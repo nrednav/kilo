@@ -199,7 +199,9 @@ void Editor::process_input() {
     cursor_position.x = 0;
     break;
   case EditorKey::End:
-    cursor_position.x = window->width - 1;
+    if (cursor_position.x < (int)lines.size()) {
+      cursor_position.x = lines[cursor_position.y].size();
+    }
     break;
   case EditorKey::PageUp:
   case EditorKey::PageDown: {
