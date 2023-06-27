@@ -203,6 +203,15 @@ void Editor::process_input() {
     break;
   case EditorKey::PageUp:
   case EditorKey::PageDown: {
+    if (key == EditorKey::PageUp) {
+      cursor_position.y = vertical_scroll_offset;
+    } else {
+      cursor_position.y = vertical_scroll_offset + window->height - 1;
+      if (cursor_position.y > (int)lines.size()) {
+        cursor_position.y = lines.size();
+      }
+    }
+
     int times = window->height;
     while (times--) {
       move_cursor(key == EditorKey::PageUp ? EditorKey::Up : EditorKey::Down);
