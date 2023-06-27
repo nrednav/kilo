@@ -321,6 +321,9 @@ void Editor::move_cursor(int key) {
   case EditorKey::Left:
     if (cursor_position.x != 0) {
       cursor_position.x--;
+    } else if (cursor_position.y > 0) {
+      cursor_position.y--;
+      cursor_position.x = line.length();
     }
     break;
   case EditorKey::Right:
