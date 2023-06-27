@@ -1,4 +1,5 @@
 #include "Editor.h"
+#include <cstdio>
 
 Editor::Editor() {
   try {
@@ -13,7 +14,7 @@ Editor::Editor() {
   }
 }
 
-Editor::Editor(char* filename) {
+Editor::Editor(const std::string& filename) {
   try {
     initialize();
     open(filename);
@@ -40,6 +41,10 @@ void Editor::initialize() {
   cursor_position = CursorPosition{0, 0};
   vertical_scroll_offset = 0;
   horizontal_scroll_offset = 0;
+  filename = "";
+
+  // Make space for status bar
+  window->height -= 1;
 
   escape_map["show_cursor"] = "\x1b[?25l";
   escape_map["hide_cursor"] = "\x1b[?25h";
@@ -50,7 +55,9 @@ void Editor::initialize() {
   escape_map["device_status"] = "\x1b[6n";
 }
 
-void Editor::open(char* filename) {
+void Editor::open(const std::string& filename) {
+  this->filename = filename;
+
   std::ifstream file{filename};
 
   if (!file.is_open()) {
@@ -135,6 +142,7 @@ void Editor::refresh_screen() {
   screen_buffer->append(escape_map["reset_cursor_pos"]);
 
   draw();
+  draw_status_bar();
 
   // Move cursor
   char cursor_buffer[32];
@@ -165,9 +173,7 @@ void Editor::draw() {
       draw_line(line_number);
     }
 
-    if (row < window->height - 1) {
-      screen_buffer->append("\r\n");
-    }
+    screen_buffer->append("\r\n");
   }
 }
 
@@ -329,9 +335,8 @@ void Editor::display_welcome_message() {
 }
 
 void Editor::move_cursor(int key) {
-  std::string line = (cursor_position.y >= (int)lines.size())
-                         ? ""
-                         : lines.at(cursor_position.y);
+  std::string line =
+      (cursor_position.y >= (int)lines.size()) ? "" : lines[cursor_position.y];
 
   switch (key) {
   case EditorKey::Left:
@@ -398,4 +403,43 @@ void Editor::replace_tabs_with_spaces(int line_number) {
     lines[line_number].replace(char_index, tab_char.size(), spaces);
     char_index = lines[line_number].find(tab_char);
   }
+}
+
+void Editor::draw_status_bar() {
+  screen_buffer->append("\x1b[7m");
+
+  char left_status[80];
+  char right_status[80];
+  std::string missing_filename_text{"[No Name]"};
+
+  int status_length = snprintf(
+      left_status, sizeof(left_status), "%.20s - %d lines",
+      filename.length() > 0 ? filename.c_str() : missing_filename_text.c_str(),
+      (int)lines.size());
+
+  int right_status_length =
+      snprintf(right_status, sizeof(right_status), "%d/%d",
+               cursor_position.y + 1, (int)lines.size());
+
+  if (status_length > window->width) {
+    status_length = window->width;
+  }
+
+  std::string left_status_line{left_status};
+  left_status_line.resize(status_length);
+  screen_buffer->append(left_status_line);
+
+  while (status_length < window->width) {
+    if (window->width - status_length == right_status_length) {
+      std::string right_status_line{right_status};
+      right_status_line.resize(right_status_length);
+      screen_buffer->append(right_status_line);
+      break;
+    } else {
+      screen_buffer->append(" ");
+      status_length++;
+    }
+  }
+
+  screen_buffer->append("\x1b[m");
 }

@@ -49,9 +49,9 @@ enum EditorKey {
 class Editor {
 public:
   Editor();
-  Editor(char* filename);
+  Editor(const std::string& filename);
   ~Editor();
-  void open(char* filename);
+  void open(const std::string& filename);
 
 private:
   std::unique_ptr<Terminal> terminal{nullptr};
@@ -62,11 +62,13 @@ private:
   std::vector<std::string> lines;
   int vertical_scroll_offset;
   int horizontal_scroll_offset;
+  std::string filename;
 
   void initialize();
   void refresh_screen();
   void draw();
   void draw_line(int line_number);
+  void draw_status_bar();
   void process_input();
   void display_welcome_message();
   void move_cursor(int key);
