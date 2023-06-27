@@ -339,6 +339,13 @@ void Editor::move_cursor(int key) {
     }
     break;
   }
+
+  line = (cursor_position.y >= (int)lines.size()) ? ""
+                                                  : lines.at(cursor_position.y);
+
+  if (cursor_position.x > (int)line.length()) {
+    cursor_position.x = line.length();
+  }
 }
 
 void Editor::scroll() {
