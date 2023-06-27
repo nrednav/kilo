@@ -31,11 +31,6 @@ struct CursorPosition {
   int y;
 };
 
-struct Line {
-  int size;
-  char* contents;
-};
-
 enum EditorKey {
   Left = 1000,
   Right,

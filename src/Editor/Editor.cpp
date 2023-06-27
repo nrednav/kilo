@@ -313,6 +313,10 @@ void Editor::display_welcome_message() {
 }
 
 void Editor::move_cursor(int key) {
+  std::string line = (cursor_position.y >= (int)lines.size())
+                         ? ""
+                         : lines.at(cursor_position.y);
+
   switch (key) {
   case EditorKey::Left:
     if (cursor_position.x != 0) {
@@ -320,7 +324,9 @@ void Editor::move_cursor(int key) {
     }
     break;
   case EditorKey::Right:
-    cursor_position.x++;
+    if (line.length() > 0 && cursor_position.x < (int)line.length()) {
+      cursor_position.x++;
+    }
     break;
   case EditorKey::Up:
     if (cursor_position.y != 0) {
