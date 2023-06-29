@@ -1,7 +1,4 @@
 #include "Editor.h"
-#include <exception>
-#include <fstream>
-#include <ios>
 
 Editor::Editor() {
   try {
@@ -172,6 +169,7 @@ void Editor::refresh_screen() {
 void Editor::draw() {
   for (int row = 0; row < window->height; row++) {
     int line_number = row + vertical_scroll_offset;
+
     // If no lines have been read, display editor startup screen
     if (line_number >= (int)lines.size()) {
       if (lines.size() == 0 && row == window->height / 3) {
@@ -370,7 +368,7 @@ void Editor::move_cursor(int key) {
       cursor_position.x--;
     } else if (cursor_position.y > 0) {
       cursor_position.y--;
-      cursor_position.x = line.length();
+      cursor_position.x = lines[cursor_position.y].length();
     }
     break;
   case EditorKey::Right:
