@@ -45,6 +45,7 @@ void Editor::initialize() {
   filename = "";
   status_message.contents[0] = '\0';
   status_message.timestamp = 0;
+  edits_count = 0;
 
   // Make space for status bar
   escape_map["show_cursor"] = "\x1b[?25l";
@@ -73,6 +74,8 @@ void Editor::open(const std::string& filename) {
   for (std::string line; std::getline(file, line);) {
     lines.push_back(std::move(line));
   }
+
+  edits_count = 0;
 }
 
 Window* Editor::create_window() {
@@ -434,12 +437,11 @@ void Editor::draw_status_bar() {
 
   char left_status[80];
   char right_status[80];
-  std::string missing_filename_text{"[No Name]"};
 
-  int status_length = snprintf(
-      left_status, sizeof(left_status), "%.20s - %d lines",
-      filename.length() > 0 ? filename.c_str() : missing_filename_text.c_str(),
-      (int)lines.size());
+  int status_length =
+      snprintf(left_status, sizeof(left_status), "%.20s - %d lines %s",
+               filename.length() > 0 ? filename.c_str() : "[No Name]",
+               (int)lines.size(), edits_count > 0 ? "(modified)" : "");
 
   int right_status_length =
       snprintf(right_status, sizeof(right_status), "%d/%d",
@@ -511,6 +513,7 @@ void Editor::insert_character(int character) {
   draw_line(line_number);
 
   cursor_position.x++;
+  edits_count++;
 }
 
 void Editor::save_file() {
@@ -527,6 +530,8 @@ void Editor::save_file() {
 
     set_status_message("%d bytes to written to disk",
                        lines.size() * sizeof(lines[0]));
+
+    edits_count = 0;
 
   } catch (const std::exception& e) {
     set_status_message("Could not save file. I/O error: %s", e.what());

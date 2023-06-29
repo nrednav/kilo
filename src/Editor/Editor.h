@@ -75,6 +75,7 @@ private:
   int vertical_scroll_offset;
   int horizontal_scroll_offset;
   std::string filename;
+  int edits_count;
 
   void initialize();
   void refresh_screen();
