@@ -15,6 +15,9 @@
 #include <fstream>
 #include <algorithm>
 #include <stdarg.h>
+#include <exception>
+#include <fstream>
+#include <ios>
 
 #include "../Terminal/Terminal.h"
 #include "../AppendBuffer/AppendBuffer.h"
