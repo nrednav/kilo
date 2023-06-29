@@ -14,6 +14,7 @@
 #include <stdexcept>
 #include <fstream>
 #include <algorithm>
+#include <stdarg.h>
 
 #include "../Terminal/Terminal.h"
 #include "../AppendBuffer/AppendBuffer.h"
@@ -21,7 +22,7 @@
 #define KILO_VERSION "0.0.1"
 #define KILO_TAB_STOP 4
 
-#define CTRL_KEY(key) ((key)&0x1f);
+#define CTRL_KEY(key) (key) & 0x1f;
 
 typedef std::map<std::string, std::string> EscapeMap;
 
@@ -41,6 +42,7 @@ struct StatusMessage {
 };
 
 enum EditorKey {
+  Backspace = 127,
   Left = 1000,
   Right,
   Up,

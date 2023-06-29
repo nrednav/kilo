@@ -1,6 +1,4 @@
 #include "Editor.h"
-#include <cstdio>
-#include <stdarg.h>
 
 Editor::Editor() {
   try {
@@ -206,6 +204,9 @@ void Editor::process_input() {
   int key = read_key();
 
   switch (key) {
+  case '\r':
+    // TODO
+    break;
   case 0x1f & 'q': // Ctrl-q
     terminal->disable_raw_mode();
     terminal->terminate("quit initiated");
@@ -217,6 +218,10 @@ void Editor::process_input() {
     if (cursor_position.x < (int)lines.size()) {
       cursor_position.x = lines[cursor_position.y].size();
     }
+    break;
+  case EditorKey::Backspace:
+  case 0x1f & 'h': // Ctrl-h
+  case EditorKey::Delete:
     break;
   case EditorKey::PageUp:
   case EditorKey::PageDown: {
@@ -235,11 +240,14 @@ void Editor::process_input() {
     }
     break;
   }
-  case EditorKey::Left:
-  case EditorKey::Right:
   case EditorKey::Up:
   case EditorKey::Down:
+  case EditorKey::Left:
+  case EditorKey::Right:
     move_cursor(key);
+    break;
+  case 0x1f & 'l': // Ctrl-l
+  case '\x1b':
     break;
   default:
     insert_character(key);
