@@ -46,6 +46,7 @@ void Editor::initialize() {
   status_message.contents[0] = '\0';
   status_message.timestamp = 0;
   edits_count = 0;
+  awaiting_user_choice = false;
 
   // Make space for status bar
   escape_map["show_cursor"] = "\x1b[?25l";
@@ -207,13 +208,31 @@ void Editor::draw_line(int line_number) {
 void Editor::process_input() {
   int key = read_key();
 
+  // Handle [Y/N] type choices
+  if (awaiting_user_choice) {
+    if (key == 121) { // 121 = Y, 110 = N
+      terminal->disable_raw_mode();
+      terminal->terminate("force quit initiated");
+    } else {
+      awaiting_user_choice = false;
+      set_status_message("");
+      return;
+    }
+  }
+
   switch (key) {
   case '\r':
     // TODO
     break;
   case 0x1f & 'q': // Ctrl-q
-    terminal->disable_raw_mode();
-    terminal->terminate("quit initiated");
+    if (edits_count > 0) {
+      set_status_message("Warning! There are unsaved changes. Are you sure you "
+                         "wish to quit? [Y/N]");
+      awaiting_user_choice = true;
+    } else {
+      terminal->disable_raw_mode();
+      terminal->terminate("quit initiated");
+    }
     break;
   case 0x1f & 's': // Ctrl-s
     save_file();

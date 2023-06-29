@@ -76,6 +76,7 @@ private:
   int horizontal_scroll_offset;
   std::string filename;
   int edits_count;
+  bool awaiting_user_choice;
 
   void initialize();
   void refresh_screen();
