@@ -506,7 +506,7 @@ void Editor::insert_character(int character) {
     column_number = line.length();
   }
 
-  line.resize(line.size() + 1, character);
+  line.insert(column_number, 1, character);
 
   draw_line(line_number);
 
