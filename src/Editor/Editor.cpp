@@ -241,6 +241,9 @@ void Editor::process_input() {
   case EditorKey::Down:
     move_cursor(key);
     break;
+  default:
+    insert_character(key);
+    break;
   }
 }
 
@@ -475,4 +478,25 @@ void Editor::draw_message_bar() {
   if (message_length && time(NULL) - status_message.timestamp < 5) {
     screen_buffer->append(status_message.contents);
   }
+}
+
+void Editor::insert_character(int character) {
+  int column_number = cursor_position.x;
+  int line_number = cursor_position.y;
+
+  if (line_number >= (int)lines.size()) {
+    lines.push_back("");
+  }
+
+  std::string& line = lines.at(line_number);
+
+  if (column_number < 0 || column_number > (int)line.length()) {
+    column_number = line.length();
+  }
+
+  line.resize(line.size() + 1, character);
+
+  draw_line(line_number);
+
+  cursor_position.x++;
 }

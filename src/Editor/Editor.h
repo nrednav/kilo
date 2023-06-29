@@ -83,6 +83,7 @@ private:
   void move_cursor(int key);
   void scroll();
   void replace_tabs_with_spaces(int line_number);
+  void insert_character(int character);
 
   int read_key();
   Window* create_window();
