@@ -1,9 +1,12 @@
 #include "Editor.h"
+#include <exception>
+#include <fstream>
+#include <ios>
 
 Editor::Editor() {
   try {
     initialize();
-    set_status_message("HELP: Ctrl-Q = Quit");
+    set_status_message("HELP: Ctrl-S = Save | Ctrl-Q = Quit");
 
     while (true) {
       refresh_screen();
@@ -18,7 +21,7 @@ Editor::Editor(const std::string& filename) {
   try {
     initialize();
     open(filename);
-    set_status_message("HELP: Ctrl-Q = Quit");
+    set_status_message("HELP: Ctrl-S = Save | Ctrl-Q = Quit");
 
     while (true) {
       refresh_screen();
@@ -210,6 +213,9 @@ void Editor::process_input() {
   case 0x1f & 'q': // Ctrl-q
     terminal->disable_raw_mode();
     terminal->terminate("quit initiated");
+    break;
+  case 0x1f & 's': // Ctrl-s
+    save_file();
     break;
   case EditorKey::Home:
     cursor_position.x = 0;
@@ -507,4 +513,25 @@ void Editor::insert_character(int character) {
   draw_line(line_number);
 
   cursor_position.x++;
+}
+
+void Editor::save_file() {
+  std::ofstream file;
+
+  try {
+    file.open(filename, std::ios_base::out);
+
+    for (unsigned int i = 0; i < lines.size(); i++) {
+      file << lines[i] << "\n";
+    }
+
+    file.close();
+
+    set_status_message("%d bytes to written to disk",
+                       lines.size() * sizeof(lines[0]));
+
+  } catch (const std::exception& e) {
+    set_status_message("Could not save file. I/O error: %s", e.what());
+    file.close();
+  }
 }
