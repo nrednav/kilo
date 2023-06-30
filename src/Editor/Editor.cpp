@@ -602,7 +602,7 @@ void Editor::delete_character() {
     if (line.empty()) {
       // If empty, remove line
       move_cursor(EditorKey::Left);
-      lines.pop_back();
+      lines.erase(lines.begin() + line_number);
     } else {
       // If not empty, append current line to previous line
       std::string& previous_line = lines[line_number - 1];
