@@ -98,6 +98,7 @@ private:
   void insert_newline();
   void save_file();
   std::string prompt(const std::string& message);
+  void search();
 };
 
 #endif // !EDITOR_H

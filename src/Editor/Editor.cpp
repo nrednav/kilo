@@ -3,7 +3,7 @@
 Editor::Editor() {
   try {
     initialize();
-    set_status_message("HELP: Ctrl-S = Save | Ctrl-Q = Quit");
+    set_status_message("HELP: Ctrl-S = Save | Ctrl-Q = Quit | Ctrl-F = Find");
 
     while (true) {
       refresh_screen();
@@ -18,7 +18,7 @@ Editor::Editor(const std::string& filename) {
   try {
     initialize();
     open(filename);
-    set_status_message("HELP: Ctrl-S = Save | Ctrl-Q = Quit");
+    set_status_message("HELP: Ctrl-S = Save | Ctrl-Q = Quit | Ctrl-F = Find");
 
     while (true) {
       refresh_screen();
@@ -243,6 +243,9 @@ void Editor::process_input() {
     if (cursor_position.x < (int)lines.size()) {
       cursor_position.x = lines[cursor_position.y].size();
     }
+    break;
+  case 0x1f & 'f': // Ctrl-f
+    search();
     break;
   case EditorKey::Backspace:
   case EditorKey::Delete:
@@ -642,6 +645,25 @@ std::string Editor::prompt(const std::string& message) {
       }
     } else if (!iscntrl(key) && key < 128) {
       input.insert(input.end(), 1, key);
+    }
+  }
+}
+
+void Editor::search() {
+  std::string query = prompt("Search: %s (Press ESC to cancel)");
+
+  if (query.length() == 0) {
+    return;
+  }
+
+  for (unsigned int i = 0; i < lines.size(); i++) {
+    std::string& line = lines[i];
+
+    std::size_t result_index = line.find(query);
+    if (result_index != std::string::npos) {
+      cursor_position.y = i;
+      cursor_position.x = result_index;
+      break;
     }
   }
 }
