@@ -1,24 +1,15 @@
 #include "Editor.h"
 
-Editor::Editor() {
-  try {
-    initialize();
-    set_status_message("HELP: Ctrl-S = Save | Ctrl-Q = Quit | Ctrl-F = Find");
-
-    while (true) {
-      refresh_screen();
-      process_input();
-    }
-  } catch (std::exception const& e) {
-    std::cout << e.what() << std::endl;
-  }
-}
-
 Editor::Editor(const std::string& filename) {
   try {
     initialize();
-    open(filename);
-    set_status_message("HELP: Ctrl-S = Save | Ctrl-Q = Quit | Ctrl-F = Find");
+
+    if (filename.length() > 0) {
+      open(filename);
+    }
+
+    set_status_message("HELP: Ctrl-S = Save | Ctrl-Q = Quit | Ctrl-F = Find | "
+                       "Ctrl-N/P = Next/Prev Word");
 
     while (true) {
       refresh_screen();

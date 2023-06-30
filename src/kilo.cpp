@@ -2,12 +2,8 @@
 
 int main(int argc, char* argv[]) {
 
-  if (argc >= 2) {
-    std::string filename{argv[1]};
-    Editor editor{filename};
-  } else {
-    Editor editor{};
-  }
+  std::string filename{argc >= 2 ? argv[1] : ""};
+  Editor editor{filename};
 
   return 0;
 }
