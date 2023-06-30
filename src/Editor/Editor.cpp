@@ -406,9 +406,9 @@ void Editor::move_cursor(int key) {
     }
     break;
   case EditorKey::Right:
-    if (line.length() > 0 && cursor_position.x < (int)line.length()) {
+    if (!line.empty() && cursor_position.x < (int)line.length()) {
       cursor_position.x++;
-    } else if (line.length() > 0 && cursor_position.x == (int)line.length()) {
+    } else if (!line.empty() && cursor_position.x == (int)line.length()) {
       cursor_position.y++;
       cursor_position.x = 0;
     }
@@ -599,7 +599,7 @@ void Editor::delete_character() {
     }
 
     // On any other line
-    if (line.length() == 0) {
+    if (line.empty()) {
       // If empty, remove line
       move_cursor(EditorKey::Left);
       lines.pop_back();
@@ -607,12 +607,10 @@ void Editor::delete_character() {
       // If not empty, append current line to previous line
       std::string& previous_line = lines[line_number - 1];
 
-      if (previous_line.length() > 0) {
-        previous_line.append(line);
-        move_cursor(EditorKey::Left);
-        cursor_position.x -= line.length();
-        lines.pop_back();
-      }
+      previous_line.append(line);
+      move_cursor(EditorKey::Left);
+      cursor_position.x -= line.length();
+      lines.erase(lines.begin() + line_number);
     }
   }
 
@@ -620,14 +618,29 @@ void Editor::delete_character() {
 }
 
 void Editor::insert_newline() {
-  if (cursor_position.x == 0) {
+  if (lines.empty()) {
     lines.push_back("");
+    return;
   }
 
-  lines.insert(lines.begin() + cursor_position.y + 1, 1, "");
+  std::string& current_line = lines[cursor_position.y];
 
-  cursor_position.y++;
-  cursor_position.x = 0;
+  if (current_line.empty()) {
+    lines.push_back("");
+    cursor_position.x = 0;
+    cursor_position.y++;
+  } else {
+    if (cursor_position.x == 0) {
+      lines.insert(lines.begin() + cursor_position.y, 1, "");
+      cursor_position.y++;
+    } else {
+      std::string text = current_line.substr(cursor_position.x);
+      current_line.erase(cursor_position.x);
+      lines.insert(lines.begin() + cursor_position.y + 1, text);
+      cursor_position.x = 0;
+      cursor_position.y++;
+    }
+  }
 }
 
 std::string Editor::prompt(const std::string& message) {
