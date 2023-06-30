@@ -48,7 +48,6 @@ void Editor::initialize() {
   edits_count = 0;
   awaiting_user_choice = false;
 
-  // Make space for status bar
   escape_map["show_cursor"] = "\x1b[?25l";
   escape_map["hide_cursor"] = "\x1b[?25h";
   escape_map["cursor_pos"] = "\x1b[%d;%dH";
@@ -223,7 +222,6 @@ void Editor::process_input() {
   switch (key) {
   case '\r':
     insert_newline();
-    // TODO
     break;
   case 0x1f & 'q': // Ctrl-q
     if (edits_count > 0) {
