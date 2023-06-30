@@ -59,7 +59,6 @@ enum EditorKey {
 
 class Editor {
 public:
-  Editor();
   Editor(const std::string& filename);
   ~Editor();
   void open(const std::string& filename);
@@ -77,6 +76,8 @@ private:
   std::string filename;
   int edits_count;
   bool awaiting_user_choice;
+  std::vector<std::vector<unsigned int>> search_occurences;
+  int current_occurence_index;
 
   int read_key();
   Window* create_window();

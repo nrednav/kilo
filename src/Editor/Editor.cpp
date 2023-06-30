@@ -38,6 +38,7 @@ void Editor::initialize() {
   status_message.timestamp = 0;
   edits_count = 0;
   awaiting_user_choice = false;
+  current_occurence_index = 0;
 
   escape_map["show_cursor"] = "\x1b[?25l";
   escape_map["hide_cursor"] = "\x1b[?25h";
@@ -269,6 +270,23 @@ void Editor::process_input() {
   case 0x1f & 'l': // Ctrl-l
   case '\x1b':
     break;
+  case 0x1f & 'n': { // Ctrl-n
+    int next_occurence_index =
+        (current_occurence_index + 1) % search_occurences.size();
+    current_occurence_index = next_occurence_index;
+    cursor_position.x = search_occurences[next_occurence_index][0];
+    cursor_position.y = search_occurences[next_occurence_index][1];
+    break;
+  }
+  case 0x1f & 'p': { // Ctrl-p
+    int prev_occurence_index =
+        (current_occurence_index - 1 + search_occurences.size()) %
+        search_occurences.size();
+    current_occurence_index = prev_occurence_index;
+    cursor_position.x = search_occurences[prev_occurence_index][0];
+    cursor_position.y = search_occurences[prev_occurence_index][1];
+    break;
+  }
   default:
     insert_character(key);
     break;
@@ -448,7 +466,7 @@ void Editor::replace_tabs_with_spaces(int line_number) {
 void Editor::draw_status_bar() {
   screen_buffer->append(escape_map["invert_colors"]);
 
-  char left_status[80];
+  char left_status[100];
   char right_status[80];
 
   int status_length =
@@ -641,20 +659,31 @@ std::string Editor::prompt(const std::string& message) {
 }
 
 void Editor::search() {
+  search_occurences.clear();
+
   std::string query = prompt("Search: %s (Press ESC to cancel)");
 
   if (query.length() == 0) {
     return;
   }
 
-  for (unsigned int i = 0; i < lines.size(); i++) {
-    std::string& line = lines[i];
+  unsigned int line_number = 0;
+  do {
+    const std::string& line = lines[line_number];
 
     std::size_t result_index = line.find(query);
     if (result_index != std::string::npos) {
-      cursor_position.y = i;
-      cursor_position.x = result_index;
-      break;
+      std::vector<unsigned int> occurence{
+          static_cast<unsigned int>(result_index), line_number};
+      search_occurences.push_back(occurence);
     }
+
+    line_number++;
+  } while (line_number != lines.size());
+
+  if (search_occurences.size() > 0) {
+    cursor_position.x = search_occurences[0][0];
+    cursor_position.y = search_occurences[0][1];
+    current_occurence_index = 0;
   }
 }
