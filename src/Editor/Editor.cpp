@@ -246,8 +246,9 @@ void Editor::process_input() {
     }
     break;
   case EditorKey::Backspace:
-  case 0x1f & 'h': // Ctrl-h
   case EditorKey::Delete:
+  case 0x1f & 'h': // Ctrl-h
+    delete_character();
     break;
   case EditorKey::PageUp:
   case EditorKey::PageDown: {
@@ -396,7 +397,7 @@ void Editor::move_cursor(int key) {
   case EditorKey::Right:
     if (line.length() > 0 && cursor_position.x < (int)line.length()) {
       cursor_position.x++;
-    } else if (cursor_position.x == (int)line.length()) {
+    } else if (line.length() > 0 && cursor_position.x == (int)line.length()) {
       cursor_position.y++;
       cursor_position.x = 0;
     }
