@@ -78,6 +78,9 @@ private:
   int edits_count;
   bool awaiting_user_choice;
 
+  int read_key();
+  Window* create_window();
+  CursorPosition get_cursor_position();
   void initialize();
   void refresh_screen();
   void draw();
@@ -94,10 +97,7 @@ private:
   void delete_character();
   void insert_newline();
   void save_file();
-
-  int read_key();
-  Window* create_window();
-  CursorPosition get_cursor_position();
+  std::string prompt(const std::string& message);
 };
 
 #endif // !EDITOR_H

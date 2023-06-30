@@ -538,6 +538,15 @@ void Editor::insert_character(int character) {
 }
 
 void Editor::save_file() {
+  if (filename.length() == 0) {
+    filename = prompt("Save file as: %s");
+
+    if (filename.length() == 0) {
+      set_status_message("Save operation cancelled");
+      return;
+    }
+  }
+
   std::ofstream file;
 
   try {
@@ -609,4 +618,32 @@ void Editor::insert_newline() {
 
   cursor_position.y++;
   cursor_position.x = 0;
+}
+
+std::string Editor::prompt(const std::string& message) {
+  std::string input{""};
+
+  while (true) {
+    set_status_message(message.c_str(), input.c_str());
+    refresh_screen();
+
+    int key = read_key();
+
+    if (key == EditorKey::Delete || key == (0x1f & 'h') ||
+        key == EditorKey::Backspace) {
+      if (input.length() > 0) {
+        input.pop_back();
+      }
+    } else if (key == '\x1b') {
+      set_status_message("");
+      return "";
+    } else if (key == '\r') {
+      if (input.length() != 0) {
+        set_status_message("");
+        return input;
+      }
+    } else if (!iscntrl(key) && key < 128) {
+      input.insert(input.end(), 1, key);
+    }
+  }
 }
