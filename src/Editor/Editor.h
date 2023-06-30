@@ -92,6 +92,7 @@ private:
   void replace_tabs_with_spaces(int line_number);
   void insert_character(int character);
   void delete_character();
+  void insert_newline();
   void save_file();
 
   int read_key();

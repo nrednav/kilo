@@ -222,6 +222,7 @@ void Editor::process_input() {
 
   switch (key) {
   case '\r':
+    insert_newline();
     // TODO
     break;
   case 0x1f & 'q': // Ctrl-q
@@ -459,7 +460,7 @@ void Editor::draw_status_bar() {
   char right_status[80];
 
   int status_length =
-      snprintf(left_status, sizeof(left_status), "%.20s - %d lines %s",
+      snprintf(left_status, sizeof(left_status), "%.20s - %d lines | %s",
                filename.length() > 0 ? filename.c_str() : "[No Name]",
                (int)lines.size(), edits_count > 0 ? "(modified)" : "");
 
@@ -597,4 +598,15 @@ void Editor::delete_character() {
   }
 
   edits_count++;
+}
+
+void Editor::insert_newline() {
+  if (cursor_position.x == 0) {
+    lines.push_back("");
+  }
+
+  lines.insert(lines.begin() + cursor_position.y + 1, 1, "");
+
+  cursor_position.y++;
+  cursor_position.x = 0;
 }
