@@ -91,6 +91,7 @@ private:
   void scroll();
   void replace_tabs_with_spaces(int line_number);
   void insert_character(int character);
+  void delete_character();
   void save_file();
 
   int read_key();

@@ -558,3 +558,43 @@ void Editor::save_file() {
     file.close();
   }
 }
+
+void Editor::delete_character() {
+  int line_number = cursor_position.y;
+  int column_number = cursor_position.x;
+  std::string& line = lines[line_number];
+
+  if (line_number == (int)lines.size()) {
+    return;
+  }
+
+  if (column_number > 0) {
+    line.erase(column_number - 1, 1);
+    cursor_position.x--;
+  } else if (column_number == 0) { // First column
+
+    // On first line
+    if (line_number == 0) {
+      return;
+    }
+
+    // On any other line
+    if (line.length() == 0) {
+      // If empty, remove line
+      move_cursor(EditorKey::Left);
+      lines.pop_back();
+    } else {
+      // If not empty, append current line to previous line
+      std::string& previous_line = lines[line_number - 1];
+
+      if (previous_line.length() > 0) {
+        previous_line.append(line);
+        move_cursor(EditorKey::Left);
+        cursor_position.x -= line.length();
+        lines.pop_back();
+      }
+    }
+  }
+
+  edits_count++;
+}
